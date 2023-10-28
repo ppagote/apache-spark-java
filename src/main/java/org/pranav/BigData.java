@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.storage.StorageLevel;
 import scala.Tuple2;
 
 import java.util.ArrayList;
@@ -52,7 +53,8 @@ public class BigData {
 
         try (JavaSparkContext sc = new JavaSparkContext(conf)) {
             JavaPairRDD<Integer, Integer> userCourseIdRdd = sc.parallelizePairs(userCourseId).distinct();
-            JavaPairRDD<Integer, Integer> chapterCourseIdRdd = sc.parallelizePairs(chapterCourseId);
+            JavaPairRDD<Integer, Integer> chapterCourseIdRdd = sc.parallelizePairs(chapterCourseId)
+                    .persist(StorageLevel.MEMORY_AND_DISK());
             JavaPairRDD<Integer, String> chapterIdTitlesRdd = sc.parallelizePairs(chapterIdTitles);
 
             //get count of course per chapter
@@ -65,11 +67,11 @@ public class BigData {
                     .reduceByKey(Long::sum);
 
             JavaPairRDD<Integer, Tuple2<Integer, Long>> join = chapterCourseIdRdd.join(integerLongJavaPairRDD);
-            join.collect().forEach(System.out::println);
+            //join.collect().forEach(System.out::println);
 
             JavaPairRDD<Integer, Long> integerLongJavaPairRDD1 = join.mapToPair(Tuple2::_2);
             JavaPairRDD<Integer, Tuple2<Long, Long>> join1 = integerLongJavaPairRDD1.join(courseIdCountRDD);
-            join1.collect().forEach(System.out::println);
+            //join1.collect().forEach(System.out::println);
 
             JavaPairRDD<Integer, Integer> objectObjectJavaPairRDD = join1.mapToPair(x -> {
                 Tuple2<Long, Long> longLongTuple2 = x._2();
@@ -85,10 +87,10 @@ public class BigData {
                 return new Tuple2<>(x._1(), score);
             });
 
-            objectObjectJavaPairRDD.collect().forEach(System.out::println);
+            //objectObjectJavaPairRDD.collect().forEach(System.out::println);
 
             JavaPairRDD<Integer, Integer> integerIntegerJavaPairRDD = objectObjectJavaPairRDD.reduceByKey(Integer::sum);
-            integerIntegerJavaPairRDD.collect().forEach(System.out::println);
+            //integerIntegerJavaPairRDD.collect().forEach(System.out::println);
 
             integerIntegerJavaPairRDD.join(chapterIdTitlesRdd)
                     .mapToPair(Tuple2::_2)

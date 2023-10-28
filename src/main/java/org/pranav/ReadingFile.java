@@ -8,6 +8,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import scala.Tuple2;
 
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class ReadingFile {
 
@@ -32,6 +33,10 @@ public class ReadingFile {
                     .sortByKey(false)
                     .take(50)
                     .forEach(System.out::println);
+
+            //In order to view DAG, enable below so that code do not exit & visit http://localhost:4040
+            /*Scanner scanner = new Scanner(System.in);
+            scanner.nextLine();*/
 
         }
     }
